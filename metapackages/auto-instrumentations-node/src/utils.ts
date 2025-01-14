@@ -81,6 +81,7 @@ import {
   azureFunctionsDetector,
   azureVmDetector,
 } from '@opentelemetry/resource-detector-azure';
+import { RuntimeNodeInstrumentation } from "@opentelemetry/instrumentation-runtime-node";
 
 const RESOURCE_DETECTOR_CONTAINER = 'container';
 const RESOURCE_DETECTOR_ENVIRONMENT = 'env';
@@ -130,6 +131,7 @@ const InstrumentationMap = {
   '@opentelemetry/instrumentation-redis-4': RedisInstrumentationV4,
   '@opentelemetry/instrumentation-restify': RestifyInstrumentation,
   '@opentelemetry/instrumentation-router': RouterInstrumentation,
+  '@opentelemetry/instrumentation-runtime-node': RuntimeNodeInstrumentation,
   '@opentelemetry/instrumentation-socket.io': SocketIoInstrumentation,
   '@opentelemetry/instrumentation-tedious': TediousInstrumentation,
   '@opentelemetry/instrumentation-undici': UndiciInstrumentation,
