@@ -38,7 +38,7 @@
   "devDependencies": {
     "@opentelemetry/api": "^1.4.1",
     "@types/mocha": "7.0.2",
-    "@types/node": "18.18.14",
+    "@types/node": "https://gitpkg.vercel.app/LukeCarrier/DefinitelyTyped/types/node/v18?node-v18-perf-hooks",
     "@types/sinon": "10.0.20",
     "nyc": "15.1.0",
     "rimraf": "5.0.10",
