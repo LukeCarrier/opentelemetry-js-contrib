@@ -15,38 +15,23 @@
  */
 import * as opentelemetry from '@opentelemetry/sdk-node';
 import { diag, DiagConsoleLogger } from '@opentelemetry/api';
-import { getStringFromEnv, getNumberFromEnv } from './envcompat';
 import {
   getLogLevelFromEnv,
   getNodeAutoInstrumentations,
   getResourceDetectorsFromEnv,
 } from './utils';
 import * as Sentry from "@sentry/node";
-import { SentryPropagator, SentrySampler, SentrySpanProcessor } from '@sentry/opentelemetry';
+import { SentryPropagator, SentrySpanProcessor } from '@sentry/opentelemetry';
 
 diag.setLogger(new DiagConsoleLogger(), getLogLevelFromEnv());
 
-export interface SentrySdkConfig {
-  dsn?: string,
-  tracesSampleRate?: number,
-}
-
-const sentryConfig: SentrySdkConfig = {
-  dsn: getStringFromEnv('SENTRY_DSN'),
-  tracesSampleRate: getNumberFromEnv('SENTRY_TRACES_SAMPLE_RATE'),
-};
-
-const sentryClient = Sentry.init({
-  dsn: sentryConfig.dsn,
-  skipOpenTelemetrySetup: true,
-
-  tracesSampleRate: sentryConfig.tracesSampleRate,
-});
 const sdkSentryOptions = {
-  contextManager: new Sentry.SentryContextManager(),
-  sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
-  spanProcessors: [new SentrySpanProcessor()],
-  textMapPropagator: new SentryPropagator(),
+   contextManager: new Sentry.SentryContextManager(),
+   // Initialising the client here breaks exception capture. Since we defer
+   // sampling decisions to the collector, I *think* we can safely disregard:
+   //sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
+   spanProcessors: [new SentrySpanProcessor()],
+   textMapPropagator: new SentryPropagator(),
 };
 
 const sdk = new opentelemetry.NodeSDK({
@@ -64,8 +49,6 @@ try {
     error
   );
 }
-
-Sentry.validateOpenTelemetrySetup();
 
 async function shutdown(): Promise<void> {
   try {
