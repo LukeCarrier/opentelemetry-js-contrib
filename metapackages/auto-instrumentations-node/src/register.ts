@@ -15,6 +15,8 @@
  */
 import * as opentelemetry from '@opentelemetry/sdk-node';
 import { diag, DiagConsoleLogger } from '@opentelemetry/api';
+import * as Sentry from '@sentry/node';
+import { SentrySpanProcessor, SentryPropagator, SentrySampler } from '@sentry/opentelemetry';
 import {
   getLogLevelFromEnv,
   getNodeAutoInstrumentations,
@@ -23,9 +25,20 @@ import {
 
 diag.setLogger(new DiagConsoleLogger(), getLogLevelFromEnv());
 
+const sentryClient = Sentry.init({
+  debug: process.env.SENTRY_DEBUG === 'true',
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '1'),
+  skipOpenTelemetrySetup: true,
+});
+
 const sdk = new opentelemetry.NodeSDK({
   instrumentations: getNodeAutoInstrumentations(),
   resourceDetectors: getResourceDetectorsFromEnv(),
+  contextManager: new Sentry.SentryContextManager(),
+  sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
+  spanProcessors: [new SentrySpanProcessor()],
+  textMapPropagator: new SentryPropagator(),
 });
 
 try {
@@ -37,6 +50,8 @@ try {
     error
   );
 }
+
+Sentry.validateOpenTelemetrySetup();
 
 async function shutdown(): Promise<void> {
   try {

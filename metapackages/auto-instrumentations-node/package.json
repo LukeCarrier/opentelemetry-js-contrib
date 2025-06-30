@@ -92,7 +92,9 @@
     "@opentelemetry/resource-detector-container": "^0.6.1",
     "@opentelemetry/resource-detector-gcp": "^0.33.1",
     "@opentelemetry/resources": "^1.24.0",
-    "@opentelemetry/sdk-node": "^0.57.1"
+    "@opentelemetry/sdk-node": "^0.57.1",
+    "@sentry/node": "^9.33.0",
+    "@sentry/opentelemetry": "^9.33.0"
   },
   "files": [
     "build/src/**/*.js",
