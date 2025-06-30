@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+import childProcess from "child_process";
+
+function isOtelPackage(depName) {
+  return depName.startsWith("@opentelemetry/");
+}
+
+function isSentryPackage(depName) {
+  return depName.startsWith("@sentry/");
+}
+
+function collectChains(node, path = []) {
+  const results = [];
+  if (!node.dependencies) return results;
+
+  for (const [name, info] of Object.entries(node.dependencies)) {
+    const currentPath = [...path, name];
+
+    if (isOtelPackage(name)) {
+      results.push({
+        name,
+        version: info.version,
+        chain: currentPath
+      });
+    }
+
+    results.push(...collectChains(info, currentPath));
+  }
+  return results;
+}
+
+function groupChainsByPackage(chains) {
+  return chains.reduce((acc, { name, version, chain }) => {
+    const key = `${name}@${version}`;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(chain);
+    return acc;
+  }, {});
+}
+
+function formatChain(chain) {
+  return chain.map((chain) => {
+    const parts = [];
+    for (const part of chain) {
+      if (isSentryPackage(part)) {
+        parts.push(`\x1b[31m${part}\x1b[0m`);
+      } else {
+        parts.push(part);
+      }
+    }
+    return `  ${parts.join(" > ")}`
+  }).join("\n");
+}
+
+function formatPackage(name, chains) {
+  return `${name}\n${formatChain(chains)}`;
+}
+
+const deps = JSON.parse(childProcess.execSync("npm ls --all --json", {maxBuffer: 1024 * 1024 * 10}));
+const otelChains = collectChains(deps);
+const otelChainsByPackage = groupChainsByPackage(otelChains);
+
+for (const [dep, chains] of Object.entries(otelChainsByPackage)) {
+  console.log(formatPackage(dep, chains));
+}
